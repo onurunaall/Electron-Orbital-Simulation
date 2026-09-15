@@ -120,11 +120,7 @@ static float findMaxRadius(const float3* deviceSpherical, int count) {
     );
 }
 
-
-
-ParticleCloud::ParticleCloud(Orbital orbital, int count, float colorScale, unsigned seed)
-    : orbital_(orbital), count_(count)
-{
+ParticleCloud::ParticleCloud(Orbital orbital, int count, float colorScale, unsigned seed) : orbital_(orbital), particleCount_(count) {
     // Radial cutoff based on principal quantum number
     double rMax = 10.0 * orbital.n * orbital.n;
     int absM = std::abs(orbital.m);
@@ -152,9 +148,9 @@ ParticleCloud::ParticleCloud(Orbital orbital, int count, float colorScale, unsig
 
     // Allocate device buffers
     size_t bufferSize = count * sizeof(float3);
-    CUDA_CHECK(cudaMalloc(&d_spherical_, bufferSize));
-    CUDA_CHECK(cudaMalloc(&d_positions_, bufferSize));
-    CUDA_CHECK(cudaMalloc(&d_colors_,    bufferSize));
+    CUDA_CHECK(cudaMalloc(&deviceSpherical_, bufferSize));
+    CUDA_CHECK(cudaMalloc(&devicePositions_, bufferSize));
+    CUDA_CHECK(cudaMalloc(&deviceColors_,    bufferSize));
 
     // Sample particles
     int blocks = getBlockCount(count, THREADS_PER_BLOCK);
@@ -165,9 +161,9 @@ ParticleCloud::ParticleCloud(Orbital orbital, int count, float colorScale, unsig
         polarTable,
         colorScale,
         seed,
-        d_spherical_,
-        d_positions_,
-        d_colors_
+        deviceSpherical_,
+        devicePositions_,
+        deviceColors_
     );
     cudaCheckKernel();
 
@@ -175,24 +171,24 @@ ParticleCloud::ParticleCloud(Orbital orbital, int count, float colorScale, unsig
     CUDA_CHECK(cudaFree(d_polar));
 
     // Compute radius for camera/bounding volume checks
-    maxRadius_ = findMaxRadius(d_spherical_, count);
+    boundingRadius_ = findMaxRadius(deviceSpherical_, count);
 }
 
 
 ParticleCloud::~ParticleCloud() {
-    if (d_spherical_) cudaFree(d_spherical_);
-    if (d_positions_) cudaFree(d_positions_);
-    if (d_colors_)    cudaFree(d_colors_);
+    if (deviceSpherical_) cudaFree(deviceSpherical_);
+    if (devicePositions_) cudaFree(devicePositions_);
+    if (deviceColors_)    cudaFree(deviceColors_);
 }
 
 void ParticleCloud::advance(float dt) {
-    int blocks = getBlockCount(count_, THREADS_PER_BLOCK);
+    int blocks = getBlockCount(particleCount_, THREADS_PER_BLOCK);
     advanceParticlesKernel<<<blocks, THREADS_PER_BLOCK>>>(
-        count_,
+        particleCount_,
         orbital_.m,
         dt,
-        d_spherical_,
-        d_positions_
+        deviceSpherical_,
+        devicePositions_
     );
     cudaCheckKernel();
 }
