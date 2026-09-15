@@ -119,7 +119,7 @@ static constexpr int BVH_STACK_CAPACITY = 64;
                     return closestHit;
                 }
             }
-        } else {
+        } else if (stackPointer + 2 <= BVH_STACK_CAPACITY) {
             traversalStack[stackPointer++] = node.left;
             traversalStack[stackPointer++] = node.right;
         }
