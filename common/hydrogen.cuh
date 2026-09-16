@@ -106,5 +106,14 @@
     const double R{radialWavefunction(n, l, radius)};
     const double P{associatedLegendre(l, absM, cos(theta))};
 
-    return (R * R) * (P * P);
+    // Spherical-harmonic normalization: (2l+1)/(4 pi) * (l-|m|)! / (l+|m|)!
+    // The factorial ratio is 1 / [(l-|m|+1) * ... * (l+|m|)], so one loop does it.
+    constexpr double fourPi{12.566370614359172};
+    double angularNorm{(2.0 * l + 1.0) / fourPi};
+    for (int k{l - absM + 1}; k <= l + absM; ++k) {
+        angularNorm /= static_cast<double>(k);
+    }
+
+    return angularNorm * (R * R) * (P * P);
+}
 }
