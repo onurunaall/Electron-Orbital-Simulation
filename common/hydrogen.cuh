@@ -116,4 +116,3 @@
 
     return angularNorm * (R * R) * (P * P);
 }
-}
