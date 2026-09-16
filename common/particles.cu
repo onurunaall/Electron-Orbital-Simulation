@@ -97,8 +97,12 @@ __global__ void advanceParticlesKernel(
     // Cylindrical distance to the y-axis, clamped near the poles to avoid division by zero
     float cylinderRadius = r * fmaxf(sinf(theta), 1e-4f);
 
-    // Tangential speed: v = m / rho (in atomic units where hbar = m_e = 1)
+    // Tangential speed: v = m / rho (atomic units, hbar = m_e = 1)
     float speed = (float)m / cylinderRadius;
+
+    // Stability clamp, NOT the exact rotation. The exact step is m*dt/rho^2,
+    // which diverges on the y-axis. Stepping along the tangent and projecting
+    // back onto the circle agrees to first order and saturates at pi/2.
     float deltaPhi = atan2f(speed * dt, cylinderRadius);
 
     phi = fmodf(phi + deltaPhi, 2.0f * kPi);
