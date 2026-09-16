@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
     }
 
     float sphereRadius = cli.getFloat("--sphere-radius", 0.25f);
-    float colorScale   = cli.getFloat("--color-scale", 700.0f);
+    float colorScale   = cli.getFloat("--color-scale", static_cast<float>(1.0 / peakProbabilityDensity(options.n, options.l, options.m)));
 
     // Scene point light setup
     PointLight sceneLight{
