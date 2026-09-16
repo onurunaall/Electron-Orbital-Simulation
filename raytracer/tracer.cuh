@@ -22,7 +22,7 @@ public:
     Tracer(const Tracer&) = delete;
     Tracer& operator=(const Tracer&) = delete;
 
-        Tracer(Tracer&&) = delete;
+    Tracer(Tracer&&) = delete;
     Tracer& operator=(Tracer&&) = delete;
 
     // Renders the scene into an internal RGB device framebuffer
