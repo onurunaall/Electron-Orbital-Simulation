@@ -106,13 +106,28 @@
     const double R{radialWavefunction(n, l, radius)};
     const double P{associatedLegendre(l, absM, cos(theta))};
 
-    // Spherical-harmonic normalization: (2l+1)/(4 pi) * (l-|m|)! / (l+|m|)!
-    // The factorial ratio is 1 / [(l-|m|+1) * ... * (l+|m|)], so one loop does it.
-    constexpr double fourPi{12.566370614359172};
-    double angularNorm{(2.0 * l + 1.0) / fourPi};
+    // Spherical-harmonic normalization: |Y_l^m|^2 = N_lm^2 * P_l^|m|(cos theta)^2
+    // with N_lm^2 = (2l+1)/(4pi) * (l-|m|)!/(l+|m|)!.
+    double factorialRatio{1.0};
     for (int k{l - absM + 1}; k <= l + absM; ++k) {
-        angularNorm /= static_cast<double>(k);
+        factorialRatio /= k;
     }
+    const double angularNorm{(2.0 * l + 1.0) / (4.0 * 3.14159265358979323846) * factorialRatio};
 
-    return angularNorm * (R * R) * (P * P);
+    return (R * R) * angularNorm * (P * P);
+}
+
+[[nodiscard]] inline double peakProbabilityDensity(int n, int l, int m,
+                                                   int radialSamples = 4096, int polarSamples = 512) {
+    const double rMax{10.0 * n * n};
+    double peak{0.0};
+    for (int i{0}; i < radialSamples; ++i) {
+        const double r{rMax * i / (radialSamples - 1)};
+        for (int j{0}; j < polarSamples; ++j) {
+            const double theta{3.14159265358979323846 * j / (polarSamples - 1)};
+            const double d{probabilityDensity(n, l, m, r, theta)};
+            if (d > peak) peak = d;
+        }
+    }
+    return peak;
 }
