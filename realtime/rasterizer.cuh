@@ -85,8 +85,8 @@ public:
     Rasterizer(const Rasterizer&) = delete;
     Rasterizer& operator=(const Rasterizer&) = delete;
 
-    Rasterizer(Rasterizer&&) noexcept = default;
-    Rasterizer& operator=(Rasterizer&&) noexcept = default;
+    Rasterizer(Rasterizer&&) = delete;
+    Rasterizer& operator=(Rasterizer&&) = delete;
 
     // Resets the depth/ID buffer
     void clear();
