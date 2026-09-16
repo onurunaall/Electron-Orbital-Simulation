@@ -80,8 +80,8 @@ int main(int argc, char** argv) {
     float sphereRadius = cli.getFloat("--sphere-radius", defaultRadius);
     bool enableShading = cli.hasFlag("--shaded");
 
-    // Color normalization scaling factor for this orbital energy level
-    float colorScale = 1.5f * powf(5.0f, static_cast<float>(options.n));
+    // Map the densest point of |psi|^2 to the top of the heatmap
+    float colorScale = static_cast<float>(1.0 / peakProbabilityDensity(options.n, options.l, options.m));
 
     std::printf("Initializing simulation: %d particles (n=%d, l=%d, m=%d)\n",
                 options.particleCount, options.n, options.l, options.m);
