@@ -94,18 +94,15 @@ __global__ void advanceParticlesKernel(
         return;
     }
 
-    // Cylindrical distance to the y-axis, clamped near the poles to avoid division by zero
-    float cylinderRadius = r * fmaxf(sinf(theta), 1e-4f);
+    const double cylinderRadius = (double)r * sin((double)theta);
+    if (cylinderRadius < 1e-12) {
+        return;   // on the axis: measure-zero set, leave stationary
+    }
+    const double twoPi   = 2.0 * (double)kPi;
+    const double deltaPhi = fmod((double)m * (double)dt / (cylinderRadius * cylinderRadius), twoPi);
 
-    // Exact rotation over dt: deltaPhi = v*dt/rho = m*dt/rho^2
-    float deltaPhi = (float)m * dt / (cylinderRadius * cylinderRadius);
-
-    // Cap the per-step rotation. Near the y-axis the exact angular velocity
-    // diverges; without this, fmodf below loses all precision.
-    constexpr float maxStepRadians = 0.5f * kPi;
-    deltaPhi = clampf(deltaPhi, -maxStepRadians, maxStepRadians);
-
-    phi = fmodf(phi + deltaPhi, 2.0f * kPi);
+    phi = (float)fmod((double)phi + deltaPhi, twoPi);
+    if (phi < 0.0f) phi += 2.0f * kPi;
 
     // Save updated coordinates
     sphericalInOut[index].z = phi;
